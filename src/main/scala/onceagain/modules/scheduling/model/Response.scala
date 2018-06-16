@@ -16,4 +16,3 @@ object Response {
 
   val All: Set[Response] = sealerate.values[Response]
 }
-

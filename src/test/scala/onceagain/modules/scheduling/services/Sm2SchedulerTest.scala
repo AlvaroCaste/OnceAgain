@@ -60,4 +60,10 @@ class Sm2SchedulerTest
       }
     }
   }
+
+  it should "reduce EF when response is hard" in {
+    forAll { review: Review ⇒
+      Sm2Scheduler.nextReview(review, Response.Hard).ef should be <= review.ef
+    }
+  }
 }
