@@ -66,4 +66,12 @@ class Sm2SchedulerTest
       Sm2Scheduler.nextReview(review, Response.Hard).ef should be <= review.ef
     }
   }
+
+  it should "keep minimum EF when next review drops EF below the threshold level" in {
+    forAll { review: Review ⇒
+      whenever(review.ef <= 1.84d /* maximum number not to exceed EF of the next revision */) {
+        Sm2Scheduler.nextReview(review, Response.Hard).ef shouldBe EasinessFactor.Min
+      }
+    }
+  }
 }

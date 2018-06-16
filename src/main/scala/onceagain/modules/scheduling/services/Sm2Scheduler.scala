@@ -20,7 +20,13 @@ object Sm2Scheduler extends Scheduler {
     }
 
   private def updateEf(response: Response, ef: EasinessFactor): EasinessFactor = response match {
-    case Response.Hard ⇒ ef - 0.8d + 0.28d - 0.02d
+    case Response.Hard ⇒ updateEf(ef)
     case _ ⇒ ef
+  }
+
+  private def updateEf(ef: EasinessFactor) = {
+    val formula = ef - 0.8d + 0.28d - 0.02d
+    if (formula <= EasinessFactor.Min) EasinessFactor.Min
+    else formula
   }
 }
