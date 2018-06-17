@@ -2,7 +2,7 @@ package onceagain.modules.scheduling.services
 
 import java.time.Duration
 
-import onceagain.modules.scheduling.model.Response.{Failed, Normal}
+import onceagain.modules.scheduling.model.Response.{Failed, Hard, Normal}
 import onceagain.modules.scheduling.model.{EasinessFactor, Response, Review}
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary.arbitrary
@@ -33,15 +33,17 @@ class Sm2SchedulerTest
 
   "The SM2 Scheduler" should "schedule the first review in one day when response is not Failed" in {
     forAll(efGen) { ef ⇒
-      Sm2Scheduler.nextReview(Review(repetition = 1, ef = ef), Normal) should ===(
-        Review(repetition = 2, ef = ef, interval = Duration.ofDays(1)))
+      val review = Sm2Scheduler.nextReview(Review(repetition = 1, ef = ef), Normal)
+      review.repetition shouldBe 2
+      review.interval shouldBe Duration.ofDays(1)
     }
   }
 
   it should "schedule the second review in six days when response is not Failed" in {
     forAll(efGen) { ef ⇒
-      Sm2Scheduler.nextReview(Review(repetition = 2, ef = ef), Normal) should ===(
-        Review(repetition = 3, ef = ef, interval = Duration.ofDays(6)))
+      val review = Sm2Scheduler.nextReview(Review(repetition = 2, ef = ef), Normal)
+      review.repetition shouldBe 3
+      review.interval shouldBe Duration.ofDays(6)
     }
   }
 
@@ -63,15 +65,21 @@ class Sm2SchedulerTest
 
   it should "reduce EF when response is hard" in {
     forAll { review: Review ⇒
-      Sm2Scheduler.nextReview(review, Response.Hard).ef should be <= review.ef
+      Sm2Scheduler.nextReview(review, Hard).ef should be <= review.ef
     }
   }
 
   it should "keep minimum EF when next review drops EF below the threshold level" in {
     forAll { review: Review ⇒
       whenever(review.ef <= 1.84d /* maximum number not to exceed EF of the next revision */) {
-        Sm2Scheduler.nextReview(review, Response.Hard).ef shouldBe EasinessFactor.Min
+        Sm2Scheduler.nextReview(review, Hard).ef shouldBe EasinessFactor.Min
       }
+    }
+  }
+
+  it should "reduce EF when response is normal" in {
+    forAll { review: Review ⇒
+      Sm2Scheduler.nextReview(review, Normal).ef should be <= review.ef
     }
   }
 }
